@@ -63,9 +63,9 @@ namespace Test
         [TestMethod]
         public void GetQueueTest()
         {
-            SuperQ.SuperQ testQueue = SuperQ.SuperQ.GetQueue("default");
-            
-            
+            SuperQ.SuperQ testQueue = SuperQ.SuperQ.GetQueue("Queue");
+
+            Assert.AreNotEqual(null, testQueue);
         }
     }
 }

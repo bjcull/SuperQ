@@ -35,7 +35,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SQL Server Compact Edition\v4.0\Private\System.Data.SqlServerCe.dll</HintPath>
+      <HintPath>..\lib\System.Data.SqlServerCe.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="Data\IQueueStorage.cs" />
     <Compile Include="QueueMessage.cs" />
-    <Compile Include="QueueStorageSQLCE.cs" />
+    <Compile Include="Data\QueueStorageSQLCE.cs" />
     <Compile Include="SuperQ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
