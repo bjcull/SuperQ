@@ -5,7 +5,7 @@ using System.Text;
 using SuperQ.Data;
 using System.Data.SqlServerCe;
 
-namespace SuperQ
+namespace SuperQ.Data
 {
     public class QueueStorageSQLCE : IQueueStorage
     {
@@ -13,36 +13,33 @@ namespace SuperQ
 
         public void CreateIfRequired(string name)
         {
+            string connection = string.Format(@"data source=|DataDirectory|\{0}.sdf", name);
             string sdfPath = string.Empty;
 
-            using(var testConn = new SqlCeConnection("data source=App_Data\Queue.sdf"))
+            using (var testConn = new SqlCeConnection(connection))
             {
                 sdfPath = testConn.Database;
             }
 
-            if (string.IsNullOrWhiteSpace(sdfPath))
+            //thread safety first
+            if (!System.IO.File.Exists(sdfPath))
             {
-                //broke?
-                return;
-            }
-
-            if (System.IO.File.Exists(sdfPath))
-            {
-                // Already Exists
-                return;
-            }
-
-            lock (_lock)
-            {
-                if (System.IO.File.Exists(sdfPath))
+                lock (_lock)
                 {
-                    // Already Exists (created while waiting for lock)
-                    return;
+                    if (!System.IO.File.Exists(sdfPath))
+                    {
+                        //create le db
+                        using (var engine = new SqlCeEngine(connection))
+                        {
+                            engine.CreateDatabase();
+                        }
+
+                        //script table
+                        string createScript = @"";
+                    }
                 }
-
-                using (var engine = new SqlCeEngine());
-
             }
+
         }
 
         public void PushMessaage<T>(QueueMessage<T> message)
