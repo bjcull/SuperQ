@@ -11,7 +11,7 @@ namespace SuperQ
 
         public Guid QueueID { get; set; }
         public DateTime Added { get; set; }
-        public DateTime Retrieved { get; set; }
+        public DateTime? Retrieved { get; set; }
 
         public QueueMessage()
         {

@@ -9,7 +9,7 @@ namespace SuperQ.Data
     {
         void CreateIfRequired(string name);
 
-        void PushMessaage<T>(QueueMessage<T> message);
+        void PushMessage<T>(QueueMessage<T> message);
 
         QueueMessage<T> GetMessage<T>();
 

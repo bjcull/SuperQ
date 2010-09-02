@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\IQueueStorage.cs" />
+    <Compile Include="Helpers\Serialization.cs" />
     <Compile Include="QueueMessage.cs" />
     <Compile Include="Data\QueueStorageSQLCE.cs" />
     <Compile Include="SuperQ.cs" />

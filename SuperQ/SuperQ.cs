@@ -19,12 +19,12 @@ namespace SuperQ
 
         public void PushMessage<T>(QueueMessage<T> message)
         {
-            throw new NotImplementedException();
+            _storage.PushMessage<T>(message);
         }
 
         public QueueMessage<T> GetMessage<T>()
         {
-            throw new NotImplementedException();
+            return _storage.GetMessage<T>();
         }
 
         public IEnumerable<QueueMessage<T>> GetAllMessages<T>()
@@ -35,6 +35,11 @@ namespace SuperQ
         public static SuperQ GetQueue(string name)
         {
             return new SuperQ(name);
+        }
+
+        public void Delete()
+        {
+            _storage.Delete();
         }
     }
 }
