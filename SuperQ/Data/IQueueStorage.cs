@@ -15,6 +15,8 @@ namespace SuperQ.Data
 
         IEnumerable<QueueMessage<T>> GetAllMessages<T>();
 
+        void DeleteMessage<T>(QueueMessage<T> message);
+
         void Clear();
 
         void Delete();

@@ -14,6 +14,7 @@ namespace SuperQ.Data
         private static readonly object _lock = new object();
         private string _name;
         private string _connection;
+        private int _timeout = 30;
 
         public void CreateIfRequired(string name)
         {
@@ -95,16 +96,19 @@ namespace SuperQ.Data
         {
             QueueMessage<T> message = null;
             string sql = @"SELECT TOP(1) QueueID, Added, Retrieved, Message 
-                           FROM [Queue] WHERE Retrieved IS NULL ORDER BY Added";
+                           FROM [Queue] WHERE Retrieved IS NULL OR Retrieved < @TimeoutDateTime ORDER BY Added";
             string sqlUpdate = @"UPDATE [Queue] SET Retrieved = GETDATE() WHERE QueueID = @id";
 
             using (SqlCeConnection conn = new SqlCeConnection(_connection))
             {
-                using (SqlCeCommand cmd = new SqlCeCommand(sql, conn))
+                conn.Open();
+                var transaction = conn.BeginTransaction();
+
+                try
                 {
-                    try
+                    using (SqlCeCommand cmd = new SqlCeCommand(sql, conn, transaction))
                     {
-                        conn.Open();
+                        cmd.Parameters.Add("@TimeoutDateTime", SqlDbType.DateTime).Value = DateTime.Now.AddSeconds(_timeout * -1);
                         using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                         {
                             if (reader.Read())
@@ -123,32 +127,58 @@ namespace SuperQ.Data
                             }
                         }
                     }
-                    catch
-                    {                        
-                        //do something?
-                    }
-                }
 
-                if (message != null)
-                {
-                    using (SqlCeCommand cmd = new SqlCeCommand(sql, conn))
+                    if (message != null)
                     {
-                        cmd.Connection = conn;
-                        cmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = message.QueueID;
-
-                        try
+                        using (SqlCeCommand cmd = new SqlCeCommand(sqlUpdate, conn, transaction))
                         {
+                            cmd.Parameters.Add("@id", SqlDbType.UniqueIdentifier).Value = message.QueueID;
+
                             cmd.ExecuteNonQuery();
                         }
-                        catch (SqlCeException e)
-                        {
-                            //do something? yeah probs do something
-                        }
                     }
+
+                    transaction.Commit();
                 }
+                catch
+                {
+                    // Error getting message - rollback
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Rollback Exception");
+                    }
+                }                
             }
 
             return message;
+        }
+
+        public void DeleteMessage<T>(QueueMessage<T> message)
+        {
+            string sql = @"DELETE FROM [Queue] WHERE QueueID = @QueueID";
+
+            using (SqlCeConnection conn = new SqlCeConnection(_connection))
+            {
+                conn.Open();
+
+                using (SqlCeCommand cmd = new SqlCeCommand(sql, conn))
+                {
+                    cmd.Parameters.Add("@QueueID", SqlDbType.UniqueIdentifier).Value = message.QueueID;
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (SqlCeException e)
+                    {
+                        //do something? yeah probs do something
+                    }
+                }
+            }
         }
 
         public IEnumerable<QueueMessage<T>> GetAllMessages<T>()
@@ -158,7 +188,24 @@ namespace SuperQ.Data
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            string sql = "DELETE FROM Queue";
+
+            using (SqlCeConnection conn = new SqlCeConnection(_connection))
+            {
+                conn.Open();
+
+                using (SqlCeCommand cmd = new SqlCeCommand(sql, conn))
+                {
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (SqlCeException e)
+                    {
+                        //do something? yeah probs do something
+                    }
+                }
+            }
         }
 
         public void Delete()

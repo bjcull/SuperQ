@@ -17,22 +17,12 @@ namespace Test
         }
 
         [TestMethod]
-        public void GetQueueTest()
+        public void GetQueue()
         {
             var testQueue = SuperQ.SuperQ.GetQueue("Queue");
 
             Assert.AreNotEqual(null, testQueue);
         }
-
-        [TestMethod]
-        public void DeleteQueue()
-        {
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
-            //testQueue.Delete();
-
-            //todo asset not exists
-        }
-
 
         [TestMethod]
         public void PushMessage()
@@ -61,6 +51,33 @@ namespace Test
             Assert.AreEqual(7, message.Payload.number);
         }
 
+        [TestMethod]
+        public void DeleteMessage()
+        {
+            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
+            var message = testQueue.GetMessage<TestClass>();
+
+            testQueue.DeleteMessage(message);
+
+            //TODO: Assert message is deleted
+        }
+
+        [TestMethod]
+        public void ClearQueue()
+        {
+            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
+            testQueue.Clear();
+        }
+
+        [TestMethod]
+        public void DeleteQueue()
+        {
+            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
+            testQueue.Delete();
+
+            //TODO: Assert database is deleted
+        }
+    
     }
 
     public class TestClass

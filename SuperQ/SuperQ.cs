@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SuperQ.Data;
+using System.Threading;
 
 namespace SuperQ
 {
+    public delegate void OnMessageReceived<T>(object sender, MessageEventArgs<T> e);
+
+    public class MessageEventArgs<T> : EventArgs
+    {
+        public QueueMessage<T> Message { get; set; }
+    }
+
     public class SuperQ
     {
         private IQueueStorage _storage;
@@ -27,6 +35,11 @@ namespace SuperQ
             return _storage.GetMessage<T>();
         }
 
+        public void DeleteMessage<T>(QueueMessage<T> message)
+        {
+            _storage.DeleteMessage<T>(message);
+        }
+
         public IEnumerable<QueueMessage<T>> GetAllMessages<T>()
         {
             throw new NotImplementedException();
@@ -37,9 +50,15 @@ namespace SuperQ
             return new SuperQ(name);
         }
 
+        public void Clear()
+        {
+            _storage.Clear();
+        }
+
         public void Delete()
         {
             _storage.Delete();
         }
+
     }
 }
