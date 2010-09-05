@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace SuperQ
 {
-    public delegate void OnMessageReceived<T>(object sender, MessageEventArgs<T> e);
+    public delegate void OnMessageReceived<T>(QueueMessage<T> message);
 
     public class MessageEventArgs<T> : EventArgs
     {
@@ -17,6 +17,37 @@ namespace SuperQ
     public class SuperQ
     {
         private IQueueStorage _storage;
+        private bool _receiving;
+
+        public Thread StartReceving<T>(OnMessageReceived<T> action)
+        {
+            _receiving = true;
+            Thread thread = new Thread(() => this.Poller<T>(action));
+            thread.Start();
+
+            return thread;
+        }
+
+        public void StopReceiving()
+        {
+            _receiving = false;
+        }
+
+        private void Poller<T>(OnMessageReceived<T> action)
+        {
+            while (_receiving)
+            {
+                var message = GetMessage<T>();
+                if (message != null)
+                {
+                    action(message);
+                }
+                else
+                {
+                    Thread.Sleep(10000);
+                }
+            }
+        }
 
         private SuperQ(string name)
         {
