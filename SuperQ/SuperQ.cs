@@ -19,7 +19,7 @@ namespace SuperQ
         private IQueueStorage _storage;
         private bool _receiving;
 
-        public Thread StartReceving<T>(OnMessageReceived<T> action)
+        public Thread StartReceiving<T>(OnMessageReceived<T> action)
         {
             _receiving = true;
             Thread thread = new Thread(() => this.Poller<T>(action));

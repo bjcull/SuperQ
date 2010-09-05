@@ -13,7 +13,7 @@ namespace TestPoller
         static void Main(string[] args)
         {
             queue = SuperQ.SuperQ.GetQueue("MyQueue");
-            queue.StartReceving<string>(MessageReceived);
+            queue.StartReceiving<string>(MessageReceived);
 
             bool running = true;
             while (running)
