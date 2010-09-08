@@ -14,15 +14,15 @@ namespace SuperQ
         public QueueMessage<T> Message { get; set; }
     }
 
-    public class SuperQ
+    public class SuperQ<T>
     {
         private IQueueStorage _storage;
         private bool _receiving;
 
-        public Thread StartReceiving<T>(OnMessageReceived<T> action)
+        public Thread StartReceiving(OnMessageReceived<T> action)
         {
             _receiving = true;
-            Thread thread = new Thread(() => this.Poller<T>(action));
+            Thread thread = new Thread(() => this.Poller(action));
             thread.Start();
 
             return thread;
@@ -33,11 +33,11 @@ namespace SuperQ
             _receiving = false;
         }
 
-        private void Poller<T>(OnMessageReceived<T> action)
+        private void Poller(OnMessageReceived<T> action)
         {
             while (_receiving)
             {
-                var message = GetMessage<T>();
+                var message = GetMessage();
                 if (message != null)
                 {
                     action(message);
@@ -56,29 +56,34 @@ namespace SuperQ
             _storage.CreateIfRequired(name);
         }
 
-        public void PushMessage<T>(QueueMessage<T> message)
+        public void PushMessage(QueueMessage<T> message)
         {
             _storage.PushMessage<T>(message);
         }
 
-        public QueueMessage<T> GetMessage<T>()
+        public QueueMessage<T> GetMessage()
         {
             return _storage.GetMessage<T>();
         }
 
-        public void DeleteMessage<T>(QueueMessage<T> message)
+        public T GetPayload()
+        {
+            return _storage.GetMessage<T>().Payload;
+        }
+
+        public void DeleteMessage(QueueMessage<T> message)
         {
             _storage.DeleteMessage<T>(message);
         }
 
-        public IEnumerable<QueueMessage<T>> GetAllMessages<T>()
+        public IEnumerable<QueueMessage<T>> GetAllMessages()
         {
             throw new NotImplementedException();
         }
 
-        public static SuperQ GetQueue(string name)
+        public static SuperQ<T> GetQueue(string name)
         {
-            return new SuperQ(name);
+            return new SuperQ<T>(name);
         }
 
         public void Clear()

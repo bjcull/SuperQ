@@ -8,12 +8,12 @@ namespace TestPoller
 {
     class Program
     {
-        private static SuperQ.SuperQ queue;
+        private static SuperQ.SuperQ<string> queue;
         
         static void Main(string[] args)
         {
-            queue = SuperQ.SuperQ.GetQueue("MyQueue");
-            queue.StartReceiving<string>(MessageReceived);
+            queue = SuperQ.SuperQ<string>.GetQueue("MyQueue2");
+            queue.StartReceiving(MessageReceived);
 
             bool running = true;
             while (running)
@@ -24,11 +24,11 @@ namespace TestPoller
                 else if (key.Key == ConsoleKey.P)
                 {
                     Console.WriteLine("Message Pushed");
-                    queue.PushMessage<string>(new QueueMessage<string>("P was pressed in message form"));
+                    queue.PushMessage(new QueueMessage<string>("P was pressed in message form"));
                 }
                 else if (key.Key == ConsoleKey.G)
                 {
-                    var message = queue.GetMessage<string>();
+                    var message = queue.GetMessage();
                     if (message != null)
                         Console.WriteLine("Payload: " + message.Payload);
                     else

@@ -19,7 +19,7 @@ namespace Test
         [TestMethod]
         public void GetQueue()
         {
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
+            var testQueue = SuperQ.SuperQ<TestClass>.GetQueue("Queue");
 
             Assert.AreNotEqual(null, testQueue);
         }
@@ -36,16 +36,16 @@ namespace Test
                 }
             };
 
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
-            testQueue.PushMessage<TestClass>(message);
+            var testQueue = SuperQ.SuperQ<TestClass>.GetQueue("Queue");
+            testQueue.PushMessage(message);
         }
 
 
         [TestMethod]
         public void GetMessage()
         {
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
-            var message = testQueue.GetMessage<TestClass>();
+            var testQueue = SuperQ.SuperQ<TestClass>.GetQueue("Queue");
+            var message = testQueue.GetMessage();
 
             Assert.AreEqual("anthony", message.Payload.word);
             Assert.AreEqual(7, message.Payload.number);
@@ -54,8 +54,8 @@ namespace Test
         [TestMethod]
         public void DeleteMessage()
         {
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
-            var message = testQueue.GetMessage<TestClass>();
+            var testQueue = SuperQ.SuperQ<TestClass>.GetQueue("Queue");
+            var message = testQueue.GetMessage();
 
             testQueue.DeleteMessage(message);
 
@@ -65,14 +65,14 @@ namespace Test
         [TestMethod]
         public void ClearQueue()
         {
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
+            var testQueue = SuperQ.SuperQ<TestClass>.GetQueue("Queue");
             testQueue.Clear();
         }
 
         [TestMethod]
         public void DeleteQueue()
         {
-            var testQueue = SuperQ.SuperQ.GetQueue("Queue");
+            var testQueue = SuperQ.SuperQ<TestClass>.GetQueue("Queue");
             testQueue.Delete();
 
             //TODO: Assert database is deleted
