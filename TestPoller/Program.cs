@@ -30,9 +30,22 @@ namespace TestPoller
                 {
                     var message = queue.GetMessage();
                     if (message != null)
-                        Console.WriteLine("Payload: " + message.Payload);
+                        Console.WriteLine("Message: " + message.Payload);
                     else
                         Console.WriteLine("No Message Received...");
+                }
+                else if (key.Key == ConsoleKey.L)
+                {
+                    Console.WriteLine("Payload Pushed");
+                    queue.PushMessage("P was pressed in Payload form");
+                }
+                else if (key.Key == ConsoleKey.V)
+                {
+                    var payload = queue.GetPayload();
+                    if (payload != null)
+                        Console.WriteLine("Payload: " + payload);
+                    else
+                        Console.WriteLine("No Payload Received...");
                 }
                 
             }

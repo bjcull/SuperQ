@@ -60,6 +60,10 @@ namespace SuperQ
         {
             _storage.PushMessage<T>(message);
         }
+        public void PushMessage(T payload)
+        {
+            _storage.PushMessage<T>(new QueueMessage<T>(payload));
+        }
 
         public QueueMessage<T> GetMessage()
         {
@@ -68,7 +72,8 @@ namespace SuperQ
 
         public T GetPayload()
         {
-            return _storage.GetMessage<T>().Payload;
+            var message = _storage.GetMessage<T>();
+            return message == null ? default(T) : message.Payload;
         }
 
         public void DeleteMessage(QueueMessage<T> message)
