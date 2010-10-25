@@ -12,7 +12,7 @@ namespace TestPoller
         
         static void Main(string[] args)
         {
-            queue = SuperQ.SuperQ<string>.GetQueue("MyQueue2");
+            queue = SuperQ.SuperQ<string>.GetQueue("MyQueue3");
             queue.StartReceiving(MessageReceived);
 
             bool running = true;
@@ -47,6 +47,16 @@ namespace TestPoller
                     else
                         Console.WriteLine("No Payload Received...");
                 }
+                else if (key.Key == ConsoleKey.A)
+                {
+                    queue.PushMessage(new QueueMessage<string>()
+                    {
+                        Payload = "Testing recurrence",
+                        Schedule = new DateTime(2010, 10, 25, 19, 37, 0),
+                        Interval = 120
+                    });
+                    Console.WriteLine("Recurring Message Added");
+                }
                 
             }
 
@@ -55,7 +65,17 @@ namespace TestPoller
 
         static void MessageReceived(QueueMessage<string> message)
         {
-            Console.WriteLine("Message Received: " + message.Payload);
+            Console.WriteLine("Message Received: " + message.Payload + " - Schedule: " + message.Schedule + " - Interval: " + message.Interval);
+
+            if (message.Interval != null)
+            {
+                queue.PushMessage(new QueueMessage<string>()
+                {
+                    Payload = message.Payload,
+                    Schedule = message.Schedule.Value.AddSeconds(Convert.ToDouble(message.Interval)),
+                    Interval = message.Interval
+                });
+            }
             queue.DeleteMessage(message);
         }
     }

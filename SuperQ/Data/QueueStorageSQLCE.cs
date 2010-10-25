@@ -26,6 +26,15 @@ namespace SuperQ.Data
             using (var testConn = new SqlCeConnection(_connection))
             {
                 sdfPath = testConn.Database;
+
+                try
+                {
+                    testConn.Open();
+                    return;
+                }
+                catch (SqlCeException ex)
+                {
+                }      
             }
 
             //thread safety first
@@ -47,8 +56,10 @@ namespace SuperQ.Data
                                                 , [Message] nvarchar(4000) NOT NULL
                                                 , [Added] datetime NOT NULL
                                                 , [Retrieved] datetime NULL
+                                                , [Schedule] datetime NULL
+                                                , [Interval] decimal(15,3) NULL
                                                 );";
-
+                        
                         using (var conn = new SqlCeConnection(_connection))
                         {
                             conn.Open();
@@ -67,7 +78,7 @@ namespace SuperQ.Data
 
         public void PushMessage<T>(QueueMessage<T> message)
         {
-            string sql = @"INSERT INTO [Queue] (Message, Added) VALUES(@Message, @Added)";
+            string sql = @"INSERT INTO [Queue] (Message, Added, Schedule, Interval) VALUES(@Message, @Added, @Schedule, @Interval)";
             string deserialized = Helpers.Serialization.ToXml(message.Payload);
 
             using (SqlCeConnection conn = new SqlCeConnection(_connection))
@@ -79,6 +90,16 @@ namespace SuperQ.Data
                     cmd.Connection = conn;
                     cmd.Parameters.Add("@Message", SqlDbType.NVarChar, 4000).Value = deserialized;
                     cmd.Parameters.Add("@Added", SqlDbType.DateTime, 255).Value = DateTime.Now;
+                    
+                    if (message.Schedule != null)
+                        cmd.Parameters.Add("@Schedule", SqlDbType.DateTime, 255).Value = message.Schedule;
+                    else
+                        cmd.Parameters.Add("@Schedule", SqlDbType.DateTime, 255).Value = DBNull.Value;
+
+                    if (message.Interval != null)
+                        cmd.Parameters.Add("@Interval", SqlDbType.Decimal, 15).Value = message.Interval;
+                    else
+                        cmd.Parameters.Add("@Interval", SqlDbType.Decimal, 15).Value = DBNull.Value;
 
                     try
                     {
@@ -95,8 +116,11 @@ namespace SuperQ.Data
         public QueueMessage<T> GetMessage<T>()
         {
             QueueMessage<T> message = null;
-            string sql = @"SELECT TOP(1) QueueID, Added, Retrieved, Message 
-                           FROM [Queue] WHERE Retrieved IS NULL OR Retrieved < @TimeoutDateTime ORDER BY Added";
+            string sql = @"SELECT TOP(1) QueueID, Added, Retrieved, Message, Schedule, Interval
+                           FROM [Queue] 
+                           WHERE (Schedule IS NULL OR Schedule < GETDATE())
+                           AND (Retrieved IS NULL OR Retrieved < @TimeoutDateTime)
+                           ORDER BY Added";
             string sqlUpdate = @"UPDATE [Queue] SET Retrieved = GETDATE() WHERE QueueID = @id";
 
             using (SqlCeConnection conn = new SqlCeConnection(_connection))
@@ -118,7 +142,9 @@ namespace SuperQ.Data
                                     QueueID = reader.GetGuid(0),
                                     Added = reader.GetDateTime(1),
                                     Retrieved = reader.IsDBNull(2) ? (DateTime?)null : reader.GetDateTime(2),
-                                    Payload = Helpers.Serialization.FromXml<T>(reader.GetString(3))
+                                    Payload = Helpers.Serialization.FromXml<T>(reader.GetString(3)),
+                                    Schedule = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4),
+                                    Interval = reader.IsDBNull(5) ? (decimal?)null : reader.GetDecimal(5)
                                 };
                             }
                             else
